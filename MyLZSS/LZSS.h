@@ -33,7 +33,7 @@ public:
     void Compress(const void *inputChar,int32_t inputLength,void* outputChar, size_t outputLength);
     void DeCompress();
 protected:
-    void InsertNode();
+    void InsertNode(int32_t window_postition,const void *inputChar,int32_t inputLength)
     uint32_t CalculateHash(const uint8_t* inputCursor);
 private:
     int32_t m_root[ROOT_SIZE];
