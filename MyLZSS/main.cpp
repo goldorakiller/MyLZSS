@@ -15,7 +15,7 @@ int main(int argc, const char * argv[]) {
     
     LZSS *lzss = new LZSS();
     
-    char inputChar[1024] = "abcdabcabcdeabcdef";
+    char inputChar[1024] = "abcdabcabcdeabcdefabcdefgabcdefgh";
     char outPutChar[1024] = "";
     
     lzss->Compress(inputChar, strlen(inputChar), outPutChar, sizeof(outPutChar));
