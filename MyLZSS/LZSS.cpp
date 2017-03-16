@@ -20,10 +20,11 @@ LZSS::LZSS()
         m_window[i].rChild = NO_MATCH;
         m_window[i].dad = NO_MATCH;
     }
-    m_root = &m_window[LZ_WINDOW_SIZE];
     m_CurPos = 0;
     m_Total = 0;
     m_IsFill = false;
+    m_CompressIndex = 0;
+    m_CompressMaskIndex = 0;
 }
 
 uint32_t LZSS::CalculateHash(const uint8_t* inputCursor){
@@ -45,11 +46,10 @@ void LZSS::DeleteNode(int32_t deleteCursor)
         replaceCursor = m_window[deleteCursor].rChild;
     }else{ //找到被删除的节点左节点的最右子节点，作为被删除节点的替换
         replaceCursor = m_window[deleteCursor].lChild;  //找到左孩子
-        if (m_window[deleteCursor].rChild != NO_MATCH) {
+        if (m_window[replaceCursor].rChild != NO_MATCH) {
             do {
                 replaceCursor = m_window[replaceCursor].rChild;
             } while (m_window[replaceCursor].rChild != NO_MATCH);
-            
            
             m_window[m_window[replaceCursor].dad].rChild = m_window[replaceCursor].lChild;
             m_window[m_window[replaceCursor].lChild].dad = m_window[replaceCursor].dad;
@@ -84,22 +84,23 @@ Match LZSS::InsertNode(int32_t windowCursor,const uint8_t *inputChar,int32_t inp
     int32_t treeCursor = m_window[hash + LZ_WINDOW_SIZE].rChild;
     int32_t matchLength = 0;
     
+    m_window[windowCursor].lChild = NO_MATCH;
+    m_window[windowCursor].rChild = NO_MATCH;
+    
     if (treeCursor == NO_MATCH) {
         m_window[hash + LZ_WINDOW_SIZE].rChild = windowCursor;
-        m_window[windowCursor].lChild = NO_MATCH;
-        m_window[windowCursor].rChild = NO_MATCH;
         m_window[windowCursor].dad = hash + LZ_WINDOW_SIZE;
         return match;
     }
     if (inputLength < MIN_MATCH_COUNT) {
         return match;
     }
-    if (windowCursor == 31) {
+    if (m_Total == 12) {
         windowCursor = windowCursor;
     }
     for (; ;) {
         
-        int32_t maxMatchLength = MAX_MATCH_COUNT;
+        int32_t maxMatchLength = MAX_MATCH_COUNT>inputLength ? MAX_MATCH_COUNT : inputLength;
         matchLength = 1;
         
         do{
@@ -169,11 +170,9 @@ Match LZSS::InsertNode(int32_t windowCursor,const uint8_t *inputChar,int32_t inp
     return match;
 }
 
-void LZSS::Compress(const void *inputChar,int32_t inputLength,void* outputChar, size_t outputLength){
+void LZSS::Compress(const void *inputChar,int32_t inputLength){
     
     const uint8_t* input  = reinterpret_cast< const uint8_t* >( inputChar );
-    //uint8_t*       output = reinterpret_cast< uint8_t* >( outputChar );
-    
     for (int i = 0; i < inputLength; ++i) {
         
         if (m_CurPos >= LZ_WINDOW_SIZE) {
@@ -186,8 +185,27 @@ void LZSS::Compress(const void *inputChar,int32_t inputLength,void* outputChar, 
         m_Buff[m_CurPos] = input[i];
         
         Match result = InsertNode(m_CurPos,input + i,inputLength - i);
-        printf("(%4d %4d %4zu %4d)\n",m_Total,result.position,result.length,result.offset);
+        printf("(%4d %4d %4c %4d %4zu %4d)\n",m_Total,m_CurPos,char(input[i]),result.position,result.length,result.offset);
         
+        if (result.length < MIN_MATCH_COUNT) {
+            if (m_Mask == 0) {
+                m_CompressMaskIndex = ++m_CompressIndex;
+            }
+            m_Mask++;
+            if (m_Mask >= 8) {
+                m_Mask = 0;
+                m_CompressMaskIndex = ++m_CompressIndex;
+            }
+            m_CompressBuff[m_CompressMaskIndex] = m_Mask;
+            m_CompressBuff[++m_CompressIndex] = input[i];
+            
+        }else{
+            m_Mask = 0;
+            
+            m_CompressBuff[++m_CompressIndex] = 0;
+            m_CompressBuff[m_CompressIndex] = (result.length - MIN_MATCH_COUNT) << 4;
+            
+        }
         m_CurPos++;
         m_Total++;
     }

@@ -14,12 +14,14 @@ int main(int argc, const char * argv[]) {
     //std::cout << "Hello, World!\n";
     
     LZSS *lzss = new LZSS();
-    
-    //char inputChar[1024] = "abcdabcabcdeabcdefabcdefgabcdefgabc";
-    char inputChar[1024] = "abcdabcabcdeabcdefabcdefgabcdefgabcdefgabcdefg";
-    char outPutChar[1024] = "";
-    
-    lzss->Compress(inputChar, strlen(inputChar), outPutChar, sizeof(outPutChar));
-    
+    {
+        //char inputChar[1024] = {0x01,0x02,0x03,0x04,0x01,0x02,0x03,0x01,0x02,0x03,0x04,0x05,0x01,0x02,0x03,0x04,0x05,0x06,0x01,0x01,0x01,};
+        char inputChar[1024] = "abcdabcabcdeabcdefabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefg";
+        lzss->Compress(inputChar, strlen(inputChar));
+    }
+    {
+        char inputChar[1024] = "abcdabcabcdeabcdefabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefg";//
+        lzss->Compress(inputChar, strlen(inputChar));
+    }
     return 0;
 }
