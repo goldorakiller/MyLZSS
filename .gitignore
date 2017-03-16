@@ -1,2 +1,15 @@
 *.exe
 *.exe
+*.suo
+MyLZSS/Debug/MyLZSS.ilk
+*.pdb
+MyLZSS/MyLZSS.sln
+*.db
+MyLZSS/MyLZSS.VC.VC.opendb
+*.obj
+*.tlog
+MyLZSS/MyLZSS/Debug/vc140.idb
+*.log
+MyLZSS/MyLZSS/MyLZSS.vcxproj
+*.filters
+MyLZSS/MyLZSS/Debug/lzss.obj.enc
