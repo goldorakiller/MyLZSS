@@ -16,12 +16,15 @@ int main(int argc, const char * argv[]) {
     LZSS *lzss = new LZSS();
     {
         //char inputChar[1024] = {0x01,0x02,0x03,0x04,0x01,0x02,0x03,0x01,0x02,0x03,0x04,0x05,0x01,0x02,0x03,0x04,0x05,0x06,0x01,0x01,0x01,};
-        char inputChar[1024] = "abcdabcabcdeabcdefabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefg";
+        char inputChar[1024] = "abcdabcabcde";//abcdefabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefg
         lzss->Compress(inputChar, strlen(inputChar));
     }
     {
-        char inputChar[1024] = "abcdabcabcdeabcdefabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefg";//
-        lzss->Compress(inputChar, strlen(inputChar));
+        //char inputChar[1024] = "abcdabcabcdeabcdefabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefg";//
+        //lzss->Compress(inputChar, strlen(inputChar));
     }
+
+	lzss->DeCompress();
+
     return 0;
 }

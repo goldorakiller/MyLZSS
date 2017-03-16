@@ -49,7 +49,7 @@ private:
     TreeNode m_window[LZ_WINDOW_SIZE + ROOT_SIZE];
     char m_Buff[LZ_WINDOW_SIZE];
     
-    char m_CompressBuff[1024*1024];
+    char m_CompressBuff[1024];
     int32_t m_CompressIndex;
     int32_t m_CompressMaskIndex;
     char m_Mask;
