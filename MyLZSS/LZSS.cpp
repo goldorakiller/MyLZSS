@@ -101,7 +101,7 @@ Match LZSS::InsertNode(int32_t windowCursor,const uint8_t *inputChar,int32_t inp
     }
     for (; ;) {
         
-        int32_t maxMatchLength = MAX_MATCH_COUNT>inputLength ? MAX_MATCH_COUNT : inputLength;
+        int32_t maxMatchLength = MAX_MATCH_COUNT > inputLength ? inputLength : MAX_MATCH_COUNT;
         matchLength = 1;
         
         do{
@@ -186,46 +186,53 @@ void LZSS::Compress(const void *inputChar,int32_t inputLength){
         }
         m_Buff[m_CurPos] = input[i];
         
+        if (i == 256){
+            i = i;//"abcdabcabcdeabcdefabcdefgabcdefgabcdefgabcdefg";
+        }
+        
         Match result = InsertNode(m_CurPos,input + i,inputLength - i);
-        //printf("(%4d %4d %4c %4d %4zu %4d)\n",m_Total,m_CurPos,char(input[i]),result.position,result.length,result.offset);
-		if (m_CurPos > matchPos) {
+        //printf("(%5d %5d %5c %5d %5zu %5d)\n",m_Total,m_CurPos,char(input[i]),result.position,result.length,result.offset);
+		if (m_Total > matchPos) {
 			if (result.length < MIN_MATCH_COUNT) {
 				if (m_Mask == 0) {
 					m_CompressMaskIndex = m_CompressIndex;
 					m_CompressIndex++;
-				}
-				m_Mask++;
-				if (m_Mask >= 8) {
-					m_Mask = 0;
-					m_CompressMaskIndex = m_CompressIndex;
-					m_CompressIndex++;
+                    m_Mask = 1;
 				}
 				m_CompressBuff[m_CompressMaskIndex] = m_Mask;
 				m_CompressBuff[m_CompressIndex++] = input[i];
-				matchPos = m_CurPos;
+				matchPos = m_Total;
+                m_Mask++;
+                if (m_Mask > 8) {
+                    m_Mask = 0;
+                }
 			}
 			else {
 				m_Mask = 0;
-				matchPos = m_CurPos + result.length - 1;
+				matchPos = m_Total + int32_t(result.length) - 1;
 				m_CompressBuff[m_CompressIndex] = 0;
 				m_CompressBuff[m_CompressIndex++] = (result.length - MIN_MATCH_COUNT) << 4;
-				m_CompressBuff[m_CompressIndex++] = result.offset;
+				*(uint16_t*)(&(m_CompressBuff[m_CompressIndex])) = result.offset;
+                m_CompressIndex += 2;
 			}
 		}
         m_CurPos++;
         m_Total++;
     }
+    printf("压缩率%4f\n",1 - (float(m_CompressIndex))/m_Total);
 }
-
 
 void LZSS::DeCompress(){
 	
 	const uint8_t* input = reinterpret_cast< const uint8_t* >(m_CompressBuff);
 	int32_t inputLength = m_CompressIndex;
 
-	char output[1024] = "";
+	char output[1024*1024] = "";
+    FILE* outputFile  = fopen( "decompress.txt", "wb+" );
+    FILE* compressFile  = fopen( "compress.txt", "wb+" );
+    fwrite(input, 1, inputLength, compressFile);
+    
 	int32_t outPutPos = 0;
-
 	int i = 0;
 
 	while(i < inputLength) {
@@ -240,17 +247,17 @@ void LZSS::DeCompress(){
 				count--;
 			}
 		}else {
-			int32_t matchLength = (mark & 0xf0) + MIN_MATCH_COUNT;
-			int32_t offset = input[i + 1];
+			int32_t matchLength = ((mark & 0xf0) >> 4) + MIN_MATCH_COUNT;
+			int32_t offset = *((uint16_t*)(&(input[i + 1])));
 			int32_t matchPos = outPutPos - offset;
-			i += 2;
+			i += 3;
 			while (matchLength > 0) {
 				output[outPutPos++] = output[matchPos++];
 				matchLength--;
 			}
 		}
 	}
-	printf("%s\n", output);
+    fwrite(output, 1, outPutPos, outputFile);
 }
 
 

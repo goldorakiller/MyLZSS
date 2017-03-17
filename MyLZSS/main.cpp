@@ -9,22 +9,34 @@
 #include <iostream>
 #include "LZSS.h"
 
+using namespace std;
+
 int main(int argc, const char * argv[]) {
-    // insert code here...
-    //std::cout << "Hello, World!\n";
+    const char  *s;
+    if (argc != 4) {
+        printf("'lzss e file1 file2' encodes file1 into file2.\n"
+               "'lzss d file2 file1' decodes file2 into file1.\n");
+        return EXIT_FAILURE;
+    }
+    if ((s = argv[1], s[1] || strpbrk(s, "DEde") == NULL)) {
+        printf("??? %s\n", s);
+        return EXIT_FAILURE;
+    }
+    
+    FILE* inputFile  = fopen( argv[ argc - 2 ], "rb" );
     
     LZSS *lzss = new LZSS();
-    {
-        //char inputChar[1024] = {0x01,0x02,0x03,0x04,0x01,0x02,0x03,0x01,0x02,0x03,0x04,0x05,0x01,0x02,0x03,0x04,0x05,0x06,0x01,0x01,0x01,};
-        char inputChar[1024] = "abcdabcabcde";//abcdefabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefg
-        lzss->Compress(inputChar, strlen(inputChar));
-    }
-    {
-        //char inputChar[1024] = "abcdabcabcdeabcdefabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefg";//
-        //lzss->Compress(inputChar, strlen(inputChar));
-    }
-
+    
+    char readBuf[1024*1024] = "";
+    size_t readSize;
+    do{
+        readSize = fread(readBuf, 1,sizeof(readBuf), inputFile);
+        if (readSize > 0) {
+            lzss->Compress(readBuf, readSize);
+        }
+    }while (readSize > 0);
+    
 	lzss->DeCompress();
-
-    return 0;
+    
+    return EXIT_SUCCESS;
 }

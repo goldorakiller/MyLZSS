@@ -16,10 +16,9 @@ namespace
     const int32_t  EMPTY_NODE              = -1;
     const uint32_t WINDOW_BITS             = 16;
     const uint32_t MIN_MATCH_COUNT         = 3;
-    const uint32_t MAX_MATCH_COUNT         = 2^4 + MIN_MATCH_COUNT;
-    const uint32_t LZ_WINDOW_SIZE          = 1 << WINDOW_BITS;
-    const uint32_t LZ_WINDOW_MASK          = LZ_WINDOW_SIZE - 1;
-    const int32_t  ROOT_SIZE               = 1<<16;
+    const uint32_t MAX_MATCH_COUNT         = (15 + MIN_MATCH_COUNT);
+    const uint32_t LZ_WINDOW_SIZE          = 256*256;
+    const int32_t  ROOT_SIZE               = (1<<8);
 }
 
 struct Match{
@@ -49,7 +48,7 @@ private:
     TreeNode m_window[LZ_WINDOW_SIZE + ROOT_SIZE];
     char m_Buff[LZ_WINDOW_SIZE];
     
-    char m_CompressBuff[1024];
+    char m_CompressBuff[1024*1024];
     int32_t m_CompressIndex;
     int32_t m_CompressMaskIndex;
     char m_Mask;
